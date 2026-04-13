@@ -1,0 +1,52 @@
+[package]
+name = "quotadeck-ai"
+version = "0.1.0"
+description = "Open-source AI IDE quota monitor & account manager"
+authors = ["QuotaDeck AI Contributors"]
+license = "MIT"
+edition = "2021"
+
+[lib]
+name = "quotadeck_ai_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# ── Tauri Core ──
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-notification = "2"
+
+# ── Serialization ──
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# ── Database ──
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# ── Async Runtime ──
+tokio = { version = "1", features = ["full"] }
+
+# ── HTTP Client ──
+reqwest = { version = "0.12", features = ["json", "gzip"] }
+
+# ── Cryptography ──
+aes-gcm = "0.10"
+rand = "0.8"
+base64 = "0.22"
+sha2 = "0.10"
+
+# ── Utilities ──
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "5.0"
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+sysinfo = "0.33"
+url = "2.5"
+hostname = "0.4"
