@@ -1,4 +1,4 @@
-import { formatDistanceToNow, format, differenceInMinutes, differenceInHours } from "date-fns";
+import { formatDistanceToNow, format, differenceInMinutes, differenceInHours, type Locale } from "date-fns";
 import { es, enUS, ptBR } from "date-fns/locale";
 
 /**

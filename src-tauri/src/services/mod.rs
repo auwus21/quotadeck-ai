@@ -7,3 +7,5 @@ pub mod database;
 pub mod crypto;
 pub mod antigravity;
 pub mod paths;
+pub mod oauth;
+pub mod oauth_server;

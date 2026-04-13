@@ -7,15 +7,11 @@ import {
   Shield,
   AlertTriangle,
   XCircle,
-  Edit3,
-  Check,
-  X,
-  Mail,
-  Key,
 } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { getStatusColor } from "../../utils/formatters";
 import { useAccountStore } from "../../stores/accountStore";
+import { AddAccountModal } from "./AddAccountModal";
 import type { Account } from "../../types/account";
 
 const cardVariants = {
@@ -32,7 +28,7 @@ const cardVariants = {
  * to the Rust backend.
  */
 export function AccountList() {
-  const { accounts, isLoading, error, fetchAccounts, switchAccount, removeAccount, addAccount } =
+  const { accounts, isLoading, error, fetchAccounts, switchAccount, removeAccount } =
     useAccountStore();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -95,14 +91,14 @@ export function AccountList() {
         </motion.div>
       )}
 
-      {/* ── Add Account Modal ── */}
+      {/* ── Add Account Modal (3 tabs: OAuth, Token, Import) ── */}
       <AnimatePresence>
         {showAddModal && (
           <AddAccountModal
             onClose={() => setShowAddModal(false)}
-            onAdd={async (email, token, label) => {
-              const result = await addAccount({ email, refreshToken: token, label });
-              if (result) setShowAddModal(false);
+            onSuccess={() => {
+              fetchAccounts();
+              setShowAddModal(false);
             }}
           />
         )}
@@ -213,159 +209,6 @@ function AccountCard({ account, isActive, onSwitch, onRemove }: AccountCardProps
   );
 }
 
-/* ── Add Account Modal ── */
-
-interface AddAccountModalProps {
-  onClose: () => void;
-  onAdd: (email: string, token: string, label?: string) => Promise<void>;
-}
-
-function AddAccountModal({ onClose, onAdd }: AddAccountModalProps) {
-  const [email, setEmail] = useState("");
-  const [token, setToken] = useState("");
-  const [label, setLabel] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !token.trim()) return;
-    setIsSubmitting(true);
-    await onAdd(email.trim(), token.trim(), label.trim() || undefined);
-    setIsSubmitting(false);
-  };
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <motion.div
-        className={cn(
-          "w-full max-w-md p-6 rounded-2xl",
-          "bg-[var(--bg-surface)] border border-[var(--border-subtle)]",
-          "shadow-[var(--shadow-lg)]"
-        )}
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)]">Add Account</h3>
-          <button
-            onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-              <Mail size={12} /> Email Address
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@example.com"
-              required
-              className={cn(
-                "w-full px-3 py-2.5 rounded-lg text-sm",
-                "bg-[var(--bg-elevated)] border border-[var(--border-subtle)]",
-                "text-[var(--text-primary)] placeholder-[var(--text-muted)]",
-                "focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]/30",
-                "transition-colors"
-              )}
-            />
-          </div>
-
-          {/* Token */}
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-              <Key size={12} /> Refresh Token
-            </label>
-            <textarea
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Paste your Antigravity refresh token here..."
-              required
-              rows={3}
-              className={cn(
-                "w-full px-3 py-2.5 rounded-lg text-sm resize-none",
-                "bg-[var(--bg-elevated)] border border-[var(--border-subtle)]",
-                "text-[var(--text-primary)] placeholder-[var(--text-muted)]",
-                "focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]/30",
-                "transition-colors"
-              )}
-            />
-            <p className="text-[10px] text-[var(--text-muted)] mt-1">
-              Your token is encrypted with AES-256-GCM before storage.
-            </p>
-          </div>
-
-          {/* Label */}
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-              <Edit3 size={12} /> Label (optional)
-            </label>
-            <input
-              type="text"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder='e.g., "Work", "Personal"'
-              className={cn(
-                "w-full px-3 py-2.5 rounded-lg text-sm",
-                "bg-[var(--bg-elevated)] border border-[var(--border-subtle)]",
-                "text-[var(--text-primary)] placeholder-[var(--text-muted)]",
-                "focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]/30",
-                "transition-colors"
-              )}
-            />
-          </div>
-
-          {/* Submit */}
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium",
-                "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
-                "hover:bg-[var(--bg-elevated)] transition-colors"
-              )}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || !email.trim() || !token.trim()}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
-                "bg-[var(--accent-primary)] text-white",
-                "hover:brightness-110 transition-all",
-                "disabled:opacity-50 disabled:cursor-not-allowed"
-              )}
-            >
-              {isSubmitting ? (
-                <>Encrypting...</>
-              ) : (
-                <>
-                  <Check size={14} /> Add Account
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </motion.div>
-  );
-}
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (

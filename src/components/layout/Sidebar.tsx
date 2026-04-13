@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -11,14 +12,19 @@ import {
 import { cn } from "../../utils/cn";
 import { APP_NAME } from "../../utils/constants";
 
-/** Navigation items for the sidebar */
-const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "accounts", label: "Accounts", icon: Users },
-  { id: "settings", label: "Settings", icon: Settings },
-] as const;
+export type PageId = "dashboard" | "accounts" | "settings";
 
-export type PageId = (typeof NAV_ITEMS)[number]["id"];
+interface NavItem {
+  id: PageId;
+  labelKey: string;
+  icon: typeof LayoutDashboard;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: "dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { id: "accounts", labelKey: "nav.accounts", icon: Users },
+  { id: "settings", labelKey: "nav.settings", icon: Settings },
+];
 
 interface SidebarProps {
   /** Currently active page */
@@ -34,6 +40,7 @@ interface SidebarProps {
  * Always visible on the left side of the application.
  */
 export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -83,7 +90,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                   ? "bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]"
                   : "text-[var(--text-secondary)]"
               )}
-              title={isCollapsed ? item.label : undefined}
+              title={isCollapsed ? t(item.labelKey) : undefined}
             >
               <Icon size={20} className="shrink-0" />
               <AnimatePresence>
@@ -95,7 +102,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                     transition={{ duration: 0.15 }}
                     className="whitespace-nowrap overflow-hidden"
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                   </motion.span>
                 )}
               </AnimatePresence>

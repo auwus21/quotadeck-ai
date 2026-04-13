@@ -132,7 +132,7 @@ function StatCard({ icon, label, value, accent }: StatCardProps) {
 }
 
 function QuotaCard({ quota }: { quota: ModelQuota }) {
-  const { text, percent, remainingText } = formatQuota(quota.used, quota.total);
+  const { text, percent } = formatQuota(quota.used, quota.total);
   const color = getQuotaColor(percent);
   const remaining = 100 - percent;
   const countdown = formatCountdown(quota.resetsAt);

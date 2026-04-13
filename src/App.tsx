@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Sidebar, type PageId } from "./components/layout/Sidebar";
 import { Header } from "./components/layout/Header";
 import { Dashboard } from "./components/dashboard/Dashboard";
@@ -19,6 +20,7 @@ import type { ModelQuota } from "./types/quota";
  * Rust backend on mount to load initial data.
  */
 function App() {
+  const { t } = useTranslation();
   const [activePage, setActivePage] = useState<PageId>("dashboard");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [antigravityInstalled, setAntigravityInstalled] = useState<boolean | null>(null);
@@ -75,18 +77,18 @@ function App() {
 
   const pageConfig: Record<PageId, { title: string; subtitle?: string }> = {
     dashboard: {
-      title: "Dashboard",
+      title: t("dashboard.title"),
       subtitle: antigravityInstalled === false
-        ? "⚠️ Antigravity not detected"
-        : "Real-time quota overview",
+        ? t("dashboard.antigravityNotDetected")
+        : t("dashboard.subtitle"),
     },
     accounts: {
-      title: "Accounts",
-      subtitle: `Manage your Antigravity accounts (${accounts.length})`,
+      title: t("accounts.title"),
+      subtitle: `${t("accounts.subtitle")} (${accounts.length})`,
     },
     settings: {
-      title: "Settings",
-      subtitle: "Customize your experience",
+      title: t("settings.title"),
+      subtitle: t("settings.subtitle"),
     },
   };
 

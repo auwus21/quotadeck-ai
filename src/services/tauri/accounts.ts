@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Account, AddAccountPayload, UpdateAccountPayload } from "../types/account";
+import type { Account, AddAccountPayload, UpdateAccountPayload } from "../../types/account";
 
 /**
  * Tauri IPC wrapper for account operations.

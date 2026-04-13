@@ -200,6 +200,68 @@ impl Database {
         self.get_account(id)
     }
 
+    /// Creates a new account or updates the token if the email already exists.
+    ///
+    /// Used by the OAuth flow where a user may re-authenticate an
+    /// existing account to refresh their credentials.
+    pub fn upsert_account(
+        &self,
+        email: &str,
+        label: &str,
+        encrypted_token: &str,
+    ) -> Result<Account, AppError> {
+        let conn = self.conn.lock().map_err(|e| AppError::Database(e.to_string()))?;
+        let now = chrono::Utc::now().to_rfc3339();
+
+        // Check if account already exists
+        let existing_id: Option<String> = conn.query_row(
+            "SELECT id FROM accounts WHERE email = ?1",
+            params![email],
+            |row| row.get(0),
+        ).ok();
+
+        if let Some(id) = existing_id {
+            // Update existing account with new token
+            conn.execute(
+                "UPDATE accounts SET refresh_token_encrypted = ?1, label = ?2, \
+                 status = 'active', updated_at = ?3 WHERE id = ?4",
+                params![encrypted_token, label, &now, &id],
+            )?;
+
+            conn.execute(
+                "INSERT INTO activity_log (action, details, created_at) VALUES (?1, ?2, ?3)",
+                params![
+                    "account_refreshed",
+                    format!(r#"{{"email":"{}"}}"#, email),
+                    &now,
+                ],
+            )?;
+
+            drop(conn);
+            self.get_account(&id)
+        } else {
+            // Create new account
+            let id = uuid::Uuid::new_v4().to_string();
+            conn.execute(
+                "INSERT INTO accounts (id, email, label, refresh_token_encrypted, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![&id, email, label, encrypted_token, &now, &now],
+            )?;
+
+            conn.execute(
+                "INSERT INTO activity_log (action, details, created_at) VALUES (?1, ?2, ?3)",
+                params![
+                    "account_added",
+                    format!(r#"{{"email":"{}","label":"{}","method":"oauth"}}"#, email, label),
+                    &now,
+                ],
+            )?;
+
+            drop(conn);
+            self.get_account(&id)
+        }
+    }
+
     /// Updates the label of an existing account.
     pub fn update_account_label(&self, id: &str, label: &str) -> Result<Account, AppError> {
         let conn = self.conn.lock().map_err(|e| AppError::Database(e.to_string()))?;
